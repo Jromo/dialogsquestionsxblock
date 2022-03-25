@@ -15,13 +15,16 @@ utc=pytz.UTC
 # Make '_' a no-op so we can scrape strings
 _ = lambda text: text
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class DialogsQuestionsXBlock(StudioEditableXBlockMixin, XBlock):
 
     display_name = String(
         display_name=_("Display Name"),
         help=_("Display name for this module"),
-        default="Dialogs with Questions XBlock",
+        default="Eol Dialogs with Questions XBlock",
         scope=Scope.settings,
     )
 
@@ -140,7 +143,7 @@ class DialogsQuestionsXBlock(StudioEditableXBlockMixin, XBlock):
 
     icon_class = "problem"
 
-    editable_fields = ('image_url', 'background_color', 'text_color', 'side', 'text', 'theme', 'max_attempts', 'weight', 'show_answer', 'answers')
+    editable_fields = ('display_name', 'image_url', 'background_color', 'text_color', 'side', 'text', 'theme', 'max_attempts', 'weight', 'show_answer', 'answers')
 
     def resource_string(self, path):
         """Handy helper for getting resources from our kit."""
@@ -242,14 +245,14 @@ class DialogsQuestionsXBlock(StudioEditableXBlockMixin, XBlock):
     def savestudentanswers(self, data, suffix=''):  # pylint: disable=unused-argument
         #Reviso si no estoy haciendo trampa y contestando mas veces en paralelo
         errores = False
-        if ((self.attempts + 1) <= self.max_attempts) or self.max_attempts <= 0:
+        if self.max_attempts == None or ((self.attempts + 1) <= self.max_attempts) or self.max_attempts <= 0:
             self.student_answers = data['student_answers']
             #check correctness
             buenas = 0.0
             malas = 0.0
             total = len(self.answers)
 
-            for k,v in self.student_answers.items():
+            for k,v in list(self.student_answers.items()):
                 if v == self.answers[k]:
                     buenas += 1
             
@@ -288,7 +291,10 @@ class DialogsQuestionsXBlock(StudioEditableXBlockMixin, XBlock):
 
     @XBlock.json_handler
     def getanswers(self, data, suffix=''):
-        return {'answers': self.answers}
+        if (self.attempts >= self.max_attempts and self.show_answer == 'Finalizado') or self.show_answer == 'Mostrar':
+            return {'answers': self.answers}
+        else:
+            return {}
 
     def get_indicator_class(self):
         indicator_class = 'unanswered'
