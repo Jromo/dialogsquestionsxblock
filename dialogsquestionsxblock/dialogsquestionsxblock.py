@@ -140,6 +140,7 @@ class DialogsQuestionsXBlock(StudioEditableXBlockMixin, XBlock):
     )
 
     has_score = True
+    
 
     icon_class = "problem"
 
